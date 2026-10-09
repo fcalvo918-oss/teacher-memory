@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { activeStudents, categories, colors, daysAgo, localDate, makeId, needsCheckIn, validDate } from './model'
-import type { Category, Classroom, Student } from './model'
+import type { Category, Classroom, Observation, Student } from './model'
 import type { Change } from './workspaceChanges'
 import { useWorkspace } from './useWorkspace'
 import './App.css'
 import './Classrooms.css'
+import ObservationEditor from './ObservationEditor'
 
 type Theme = 'system' | 'light' | 'dark'
 type Props = { userId?: string; accountEmail?: string; onExit: () => void; signingOut?: boolean }
@@ -60,6 +61,7 @@ export default function Journal({ userId, accountEmail, onExit, signingOut = fal
   const [message, setMessage] = useState('')
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
   const [edit, setEdit] = useState<Edit | null>(null)
+  const [editingNote, setEditingNote] = useState<Observation | null>(null)
   const draftId = useRef<string | null>(null)
   const noteInput = useRef<HTMLTextAreaElement>(null)
   const classroom = workspace.classrooms.find(c => c.id === classId) ?? workspace.classrooms[0]
@@ -143,6 +145,12 @@ export default function Journal({ userId, accountEmail, onExit, signingOut = fal
     if (result.ok) { clearDraft(); setMessage(`Observation saved for ${student.alias}${userId ? ' to your account' : ' in this browser'}.`) }
     else setMessage(result.message)
   }
+  async function updateObservation(value: Observation): Promise<Result> {
+    if (!editingNote) return { ok: false, message: 'Open the observation again.' }
+    const result = await run({ kind: 'note-update', before: editingNote, value })
+    if (result.ok) { setEditingNote(null); setMessage('Observation updated.') }
+    return result
+  }
   function exit() { if (!busy && canLeaveDraft()) onExit() }
 
   return <div className="app-shell">
@@ -178,10 +186,10 @@ export default function Journal({ userId, accountEmail, onExit, signingOut = fal
             <div className="student-actions"><button disabled={locked} onClick={() => openEdit({ kind: 'student-rename', student })}>Rename alias</button><button disabled={locked || Boolean(classroom?.archived)} onClick={() => { void archiveStudent() }}>{student.archived ? 'Restore student' : 'Archive student'}</button></div>
             <form onSubmit={event => { void save(event) }}><div className="form-top"><h3>What did you notice?</h3><span>A moment worth remembering</span></div><label className="sr-only" htmlFor="note">Observation for {student.alias}</label><textarea ref={noteInput} id="note" value={draft} onChange={event => setDraft(event.target.value)} maxLength={2000} disabled={busy || readOnly} required placeholder={readOnly ? 'Restore this student and classroom to add a new observation.' : 'What happened? What might help next? Keep it specific and kind.'} /><div className="form-fields"><label>Category<select value={category} disabled={busy || readOnly} onChange={event => setCategory(event.target.value as Category)}>{categories.map(c => <option key={c}>{c}</option>)}</select></label><label>Observation date<input type="date" value={date} max={today} disabled={busy || readOnly} required onChange={event => setDate(event.target.value)} /></label></div><div className="form-footer"><span>{draft.length}/2,000 characters</span><button className="primary" disabled={locked || readOnly || !draft.trim()}>{busy ? 'Saving…' : 'Save observation'} <span aria-hidden="true">↗</span></button></div></form>
           </section>
-          <section className="panel timeline"><div className="timeline-title"><h2>Student timeline</h2><span>{timeline.length} {timeline.length === 1 ? 'observation' : 'observations'}</span></div>{timeline.length === 0 ? <div className="empty"><span className="empty-symbol">✧</span><h3>A story starts with one moment.</h3><p>{readOnly ? 'No observations in this archived timeline.' : `Add the first observation for ${student.alias} above.`}</p></div> : <ol>{timeline.map(n => <li key={n.id}><div className="timeline-meta"><span className={`category category-${n.category.toLowerCase()}`}>{n.category}</span><time dateTime={n.date}>{displayDate(n.date)}</time></div><p className="note-text">{n.note}</p>{!readOnly && (pendingDelete === n.id ? <div className="delete-confirm"><span>Delete this observation?</span><button className="danger" disabled={locked} onClick={async () => { const result = await run({ kind: 'note-remove', id: n.id }); if (result.ok) { setPendingDelete(null); setMessage('Observation deleted.') } else setMessage(result.message) }}>Delete</button><button disabled={busy} onClick={() => setPendingDelete(null)}>Keep it</button></div> : <button className="delete-link" disabled={locked} aria-label={`Delete ${n.category.toLowerCase()} observation from ${displayDate(n.date)}`} onClick={() => setPendingDelete(n.id)}>Delete</button>)}</li>)}</ol>}</section>
+          <section className="panel timeline"><div className="timeline-title"><h2>Student timeline</h2><span>{timeline.length} {timeline.length === 1 ? 'observation' : 'observations'}</span></div>{timeline.length === 0 ? <div className="empty"><span className="empty-symbol">✧</span><h3>A story starts with one moment.</h3><p>{readOnly ? 'No observations in this archived timeline.' : `Add the first observation for ${student.alias} above.`}</p></div> : <ol>{timeline.map(n => <li key={n.id}><div className="timeline-meta"><span className={`category category-${n.category.toLowerCase()}`}>{n.category}</span><time dateTime={n.date}>{displayDate(n.date)}</time></div><p className="note-text">{n.note}</p>{!readOnly && (pendingDelete === n.id ? <div className="delete-confirm"><span>Delete this observation?</span><button className="danger" disabled={locked} onClick={async () => { const result = await run({ kind: 'note-remove', id: n.id }); if (result.ok) { setPendingDelete(null); setMessage('Observation deleted.') } else setMessage(result.message) }}>Delete</button><button disabled={busy} onClick={() => setPendingDelete(null)}>Keep it</button></div> : <div className="observation-actions"><button className="edit-observation" disabled={locked} aria-label={`Edit ${n.category.toLowerCase()} observation from ${displayDate(n.date)}`} onClick={() => { setPendingDelete(null); setEditingNote({ ...n }) }}>Edit</button><button className="delete-link" disabled={locked} aria-label={`Delete ${n.category.toLowerCase()} observation from ${displayDate(n.date)}`} onClick={() => setPendingDelete(n.id)}>Delete</button></div>)}</li>)}</ol>}</section>
         </> : <section className="panel empty classroom-empty"><span className="empty-symbol">✧</span><h2>{students.length ? 'Choose a student to see their story.' : 'A new classroom, ready for its stories.'}</h2><p>{students.length ? 'Select an alias from the student list.' : 'Add a fictional student alias to begin capturing observations.'}</p>{classroom && !classroom.archived && <button className="primary" disabled={locked} onClick={() => openEdit({ kind: 'student-new', classroomId: classroom.id })}>Add student alias</button>}</section>}</div></div>
         <footer>Teacher Memory <span>by Ferchocol Software</span><span>Made for the moments that matter.</span></footer>
       </div>
-    </main>{edit && <NameDialog edit={edit} busy={busy} onClose={() => setEdit(null)} onSave={saveName} />}
+    </main>{editingNote && <ObservationEditor key={editingNote.id} original={editingNote} alias={workspace.students.find(s => s.id === editingNote.studentId)?.alias ?? 'Student alias'} busy={busy} locked={locked} archived={!workspace.students.some(s => s.id === editingNote.studentId && !s.archived && workspace.classrooms.some(c => c.id === s.classroomId && !c.archived))} onClose={() => setEditingNote(null)} onSave={updateObservation} />}{edit && <NameDialog edit={edit} busy={busy} onClose={() => setEdit(null)} onSave={saveName} />}
   </div>
 }

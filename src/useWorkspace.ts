@@ -10,6 +10,7 @@ function problemMessage(problem: unknown, refreshing = false) {
   const code = typeof problem === 'object' && problem !== null && 'code' in problem ? String(problem.code) : ''
   if (code === '42P01' || code === 'PGRST202' || code === 'PGRST205') return 'The classroom database update is not available yet. Complete the setup, then refresh.'
   if (code === '23505') return 'That classroom name or student alias is already in use. Choose another name, including checking archived entries.'
+  if (code === 'PGRST116') return 'This entry changed or was deleted. Your draft is still here. Copy it if needed, then close the editor, refresh, and reopen the latest observation before trying again.'
   if (code === '23503' || code === '42501') return 'This change could not be saved. Refresh to check whether the classroom or student was archived, or sign in again.'
   return refreshing ? 'Could not refresh your workspace. Check your connection and account session, then try Refresh notes. Previously loaded information is still shown.' : 'Could not save the change. Your entry is still here. Check your connection and try again.'
 }
@@ -144,6 +145,20 @@ export function useWorkspace(userId?: string) {
           const n = change.value
           const { error: problem } = await client.from('tm_observations').upsert({ owner_id: userId, id: n.id, student_id: n.studentId, observed_on: n.date, category: n.category, note: n.note }, { onConflict: 'owner_id,id' })
           if (problem) throw problem
+          break
+        }
+        case 'note-update': {
+          const n = change.value
+          const before = change.before
+          // Compare the original values in the same UPDATE so a stale editor
+          // cannot overwrite a change from another device or recreate a deleted row.
+          const { data, error: problem } = await client.from('tm_observations')
+            .update({ observed_on: n.date, category: n.category, note: n.note })
+            .eq('owner_id', userId).eq('id', before.id).eq('student_id', before.studentId)
+            .eq('observed_on', before.date).eq('category', before.category).eq('note', before.note)
+            .select('id,student_id,observed_on,category,note').single()
+          if (problem) throw problem
+          change = { ...change, value: { id: data.id, studentId: data.student_id, date: data.observed_on, category: data.category, note: data.note } }
           break
         }
         case 'note-remove': {

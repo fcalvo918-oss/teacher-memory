@@ -1,0 +1,12 @@
+.observation-editor { width: min(580px, calc(100vw - 32px)); }
+.observation-editor textarea { width: 100%; min-height: 160px; resize: vertical; box-sizing: border-box; border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--field); color: var(--ink); font: inherit; line-height: 1.6; }
+.observation-editor .form-fields { margin-top: 16px; }
+.editor-character-count { font-size: 12px; text-align: right; }
+.observation-actions { display: flex; align-items: center; gap: 16px; margin-top: 12px; }
+.observation-actions .delete-link { margin-top: 0; }
+.edit-observation { border: 0; padding: 0; background: none; color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; }
+.edit-observation:hover { color: var(--ink); text-decoration: underline; }
+@media (max-width: 480px) {
+  .observation-editor .form-fields { grid-template-columns: 1fr; }
+  .observation-editor textarea { min-height: 140px; }
+}

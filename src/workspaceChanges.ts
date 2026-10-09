@@ -7,6 +7,7 @@ export type Change =
   | { kind: 'student-add'; value: Student }
   | { kind: 'student-update'; id: string; patch: Partial<Pick<Student, 'alias' | 'archived'>> }
   | { kind: 'note-add'; value: Observation }
+  | { kind: 'note-update'; before: Observation; value: Observation }
   | { kind: 'note-remove'; id: string }
 
 export function applyChange(workspace: Workspace, change: Change): Workspace {
@@ -27,7 +28,13 @@ export function applyChange(workspace: Workspace, change: Change): Workspace {
       if (!workspace.students.some(s => s.id === change.id)) throw new Error('Refresh your students and try again.')
       next = { ...workspace, students: workspace.students.map(s => s.id === change.id ? { ...s, ...change.patch } : s) }
       break
+    case 'note-update':
     case 'note-add': {
+      if (change.kind === 'note-update') {
+        const existing = workspace.notes.find(n => n.id === change.before.id)
+        if (!existing || !sameObservation(existing, change.before)) throw new Error('This observation changed or was deleted. Close the editor, refresh, and reopen it to review the latest version. Your draft has not been saved.')
+        if (change.value.id !== existing.id || change.value.studentId !== existing.studentId) throw new Error('An observation must stay in its original student timeline.')
+      }
       const student = workspace.students.find(s => s.id === change.value.studentId)
       if (!student || student.archived || !workspace.classrooms.some(c => c.id === student.classroomId && !c.archived)) {
         throw new Error('Restore the student and classroom before adding an observation.')
@@ -41,4 +48,8 @@ export function applyChange(workspace: Workspace, change: Change): Workspace {
   }
   if (!isWorkspace(next)) throw new Error('Use a different classroom name or student alias, and check the entry length.')
   return next
+}
+
+export function sameObservation(a: Observation, b: Observation) {
+  return a.id === b.id && a.studentId === b.studentId && a.date === b.date && a.category === b.category && a.note === b.note
 }
