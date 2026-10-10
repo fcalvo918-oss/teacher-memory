@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js'
 import Journal from './Journal'
 import { authRedirect, cloudConfigured, supabase } from './supabase'
 import './Account.css'
+import Brand from './Brand'
 
 type Mode = 'signin' | 'signup' | 'reset'
 
@@ -47,7 +48,7 @@ function AccountForm({ recovery, onRecovered, onDemo }: { recovery: boolean; onR
   }
   function switchMode(next: Mode) { setMode(next); setError(''); setMessage(''); setPassword(''); setConfirm('') }
   return <div className="account-page"><div className="account-card">
-    <div className="account-brand">Teacher Memory<small>BY FERCHOCOL SOFTWARE</small></div>
+    <div className="account-brand"><Brand /></div>
     <div className="eyebrow">A LITTLE ATTENTION GOES A LONG WAY</div><h1>{title}</h1>
     <p>{recovery ? 'Enter a new password to continue to your account.' : 'Sign in with the same account on your computer and phone to share your fictional classroom notes.'}</p>
     {!cloudConfigured && <div className="account-notice">Account syncing is not connected yet. You can still use the browser demo below.</div>}

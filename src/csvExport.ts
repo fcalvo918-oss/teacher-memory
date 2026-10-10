@@ -23,7 +23,7 @@ export function observationsCsv(workspace: Workspace, classroomId: string, notes
 
 export function exportFilename(scope: string, today: string) {
   const label = scope.replace(/[^\p{L}\p{N}_-]+/gu, '-').replace(/^-+|-+$/g, '').slice(0, 65) || 'observations'
-  return `teacher-memory-${label}-${today}.csv`
+  return `notalume-${label}-${today}.csv`
 }
 
 export function downloadCsv(text: string, filename: string) {

@@ -11,6 +11,7 @@ import StudentTimeline from './StudentTimeline'
 import { observationsCsv, downloadCsv, exportFilename } from './csvExport'
 import './CsvExport.css'
 import ClassroomCoverage from './ClassroomCoverage'
+import Brand from './Brand'
 
 type Theme = 'system' | 'light' | 'dark'
 type Props = { userId?: string; accountEmail?: string; onExit: () => void; signingOut?: boolean }
@@ -178,7 +179,7 @@ export default function Journal({ userId, accountEmail, onExit, signingOut = fal
 
   return <div className="app-shell">
     <aside className="sidebar">
-      <a className="brand" href="#main"><span className="brand-icon" aria-hidden="true">tm<span>✦</span></span><span>Teacher Memory<small>BY FERCHOCOL SOFTWARE</small></span></a>
+      <a className="brand" href="#main"><Brand /></a>
       <div className="workspace-label">YOUR WORKSPACE</div><div className="nav-active"><span aria-hidden="true">▦</span> Classroom journal</div>
       <div className="sidebar-note"><span className="small-spark">✧</span><h3>Small moments.<br />A fuller picture.</h3><p>A little observation today helps you see every learner tomorrow.</p></div>
       <div className="sidebar-bottom"><span className="demo-dot" />{userId ? 'Your cloud workspace' : 'Browser demo'}<small>{workspace.classrooms.filter(c => !c.archived).length} active classrooms · Fictional aliases</small></div>
@@ -213,7 +214,7 @@ export default function Journal({ userId, accountEmail, onExit, signingOut = fal
           </section>
           <StudentTimeline key={student.id} alias={student.alias} notes={timeline} readOnly={readOnly} exportDisabled={locked} onExport={exportObservations}>{matches => <ol>{matches.map(n => <li key={n.id}><div className="timeline-meta"><span className={`category category-${n.category.toLowerCase()}`}>{n.category}</span><time dateTime={n.date}>{displayDate(n.date)}</time></div><p className="note-text">{n.note}</p>{!readOnly && (pendingDelete === n.id ? <div className="delete-confirm"><span>Delete this observation?</span><button className="danger" disabled={locked} onClick={async () => { const result = await run({ kind: 'note-remove', id: n.id }); if (result.ok) { setPendingDelete(null); setMessage('Observation deleted.') } else setMessage(result.message) }}>Delete</button><button disabled={busy} onClick={() => setPendingDelete(null)}>Keep it</button></div> : <div className="observation-actions"><button className="edit-observation" disabled={locked} aria-label={`Edit ${n.category.toLowerCase()} observation from ${displayDate(n.date)}`} onClick={() => { setPendingDelete(null); setEditingNote({ ...n }) }}>Edit</button><button className="delete-link" disabled={locked} aria-label={`Delete ${n.category.toLowerCase()} observation from ${displayDate(n.date)}`} onClick={() => setPendingDelete(n.id)}>Delete</button></div>)}</li>)}</ol>}</StudentTimeline>
         </> : <section className="panel empty classroom-empty"><span className="empty-symbol">✧</span><h2>{students.length ? 'Choose a student to see their story.' : 'A new classroom, ready for its stories.'}</h2><p>{students.length ? 'Select an alias from the student list.' : 'Add a fictional student alias to begin capturing observations.'}</p>{classroom && !classroom.archived && <button className="primary" disabled={locked} onClick={() => openEdit({ kind: 'student-new', classroomId: classroom.id })}>Add student alias</button>}</section>}</div></div>
-        <footer>Teacher Memory <span>by Ferchocol Software</span><span>Made for the moments that matter.</span></footer>
+        <footer>Notalume <span>by Ferchocol Software</span><span>Made for the moments that matter.</span></footer>
       </div>
     </main>{editingNote && <ObservationEditor key={editingNote.id} original={editingNote} alias={workspace.students.find(s => s.id === editingNote.studentId)?.alias ?? 'Student alias'} busy={busy} locked={locked} archived={!workspace.students.some(s => s.id === editingNote.studentId && !s.archived && workspace.classrooms.some(c => c.id === s.classroomId && !c.archived))} onClose={() => setEditingNote(null)} onSave={updateObservation} />}{edit && <NameDialog edit={edit} busy={busy} onClose={() => setEdit(null)} onSave={saveName} />}
   </div>

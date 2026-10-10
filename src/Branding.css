@@ -1,0 +1,15 @@
+:root{--bg:#f6f8fc;--panel:#fff;--ink:#172b50;--muted:#61718b;--line:#dfe5ef;--green:#2453c6;--tint:#edf2ff;--field:#fcfdff;--banner:#eff3fc;color:var(--ink);background:var(--bg)}
+:root[data-theme=dark]{--bg:#101827;--panel:#19243a;--ink:#e7edf9;--muted:#aab9d2;--line:#34435d;--green:#a3bdff;--tint:#243759;--field:#121d30;--banner:#22324d;color:var(--ink);background:var(--bg)}
+.notalume-brand{display:flex;align-items:center;gap:10px;min-width:0;text-align:left}
+.notalume-mark{display:block;flex-shrink:0;width:46px;height:46px;object-fit:contain;background:#fff;border-radius:9px;padding:3px}
+.notalume-wordmark{display:block;min-width:0;color:var(--ink);font-family:Inter,'Segoe UI',sans-serif;font-weight:750;font-size:21px;letter-spacing:-.7px;line-height:1.2}
+.notalume-tagline{display:block;font-size:10px;font-weight:450;letter-spacing:0;color:var(--muted);margin-top:5px}
+.notalume-brand .notalume-wordmark small{font-size:7px;font-weight:500;letter-spacing:1px;margin-top:7px;display:block;color:var(--muted)}
+.brand{gap:0}.account-brand .notalume-mark{height:60px;width:60px}.account-brand .notalume-wordmark{font-size:29px}.account-brand .notalume-tagline{font-size:13px}.account-brand .notalume-wordmark small{font-size:8px}
+.primary{background:#2453c6;border-color:#2453c6;color:#fff}
+:root[data-theme=dark] .primary{background:#2e63d7;border-color:#2e63d7;color:#fff}
+:focus-visible{outline-color:#4974d7}.sync-dot,.demo-dot{background:var(--green)}.timeline li:before{background:#86a4e0}.due-dot{background:#d79a14}
+.avatar{color:#172b50}.blue{background:#dce8ff}.peach{background:#fce1df}.lavender{background:#e8e4fa}.green{background:#f8edc8}
+.category-celebration{background:#fff0c4;color:#735400}.category-participation{background:#fbe2e2;color:#923636}.category-wellbeing{background:#e2eaff;color:#294c95}
+@media(max-width:1150px){.notalume-brand{gap:8px}.notalume-mark{width:38px;height:38px}.brand .notalume-wordmark{font-size:18px}.brand .notalume-tagline{font-size:9px}.brand .notalume-wordmark small{font-size:6px;letter-spacing:.7px}}
+@media(max-width:620px){.account-brand .notalume-wordmark{font-size:27px}.account-brand .notalume-mark{width:52px;height:52px}}
