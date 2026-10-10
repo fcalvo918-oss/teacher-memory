@@ -1,0 +1,5 @@
+.timeline-export-controls{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:16px}
+.timeline-export-controls span,.classroom-export-help{font-size:11px;color:var(--muted);line-height:1.6}
+.timeline-export-controls button{font-size:12px}
+.classroom-export-help{margin:8px 0 0}
+@media(max-width:620px){.timeline-export-controls{align-items:flex-start;flex-direction:column}.timeline-export-controls button{width:100%}}

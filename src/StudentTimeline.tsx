@@ -6,9 +6,9 @@ import { emptyFilters, filterProblem, filterTimeline } from './timelineFilters'
 import type { TimelineFilters } from './timelineFilters'
 import './StudentTimeline.css'
 
-type Props = { notes: Observation[]; alias: string; readOnly: boolean; children: (notes: Observation[]) => ReactNode }
+type Props = { notes: Observation[]; alias: string; readOnly: boolean; exportDisabled: boolean; onExport: (notes: Observation[]) => void; children: (notes: Observation[]) => ReactNode }
 
-export default function StudentTimeline({ notes, alias, readOnly, children }: Props) {
+export default function StudentTimeline({ notes, alias, readOnly, exportDisabled, onExport, children }: Props) {
   const [filters, setFilters] = useState<TimelineFilters>({ ...emptyFilters })
   const matches = filterTimeline(notes, filters)
   const problem = filterProblem(filters)
@@ -25,6 +25,7 @@ export default function StudentTimeline({ notes, alias, readOnly, children }: Pr
         <label>To date<input type="date" value={filters.to} aria-invalid={Boolean(problem)} onChange={event => setFilters({ ...filters, to: event.target.value })} /></label>
       </div>
       <div className="timeline-filter-footer"><span>Dates include both the start and end day.</span><button type="button" onClick={clear} disabled={!hasFilters}>Clear filters</button></div>
+      <div className="timeline-export-controls"><span>Exports only the saved notes matching these filters.</span><button type="button" disabled={exportDisabled || Boolean(problem) || matches.length === 0} onClick={() => onExport(matches)}>Export shown notes ({matches.length})</button></div>
       {problem && <p className="dialog-error" role="alert">{problem}</p>}
     </div>
     {notes.length === 0 ? <div className="empty"><span className="empty-symbol">✧</span><h3>A story starts with one moment.</h3><p>{readOnly ? 'No observations in this archived timeline.' : `Add the first observation for ${alias} above.`}</p></div> : problem ? <div className="empty"><p>Adjust the date range to see matching observations.</p></div> : matches.length === 0 ? <div className="empty"><h3>No matching observations.</h3><p>Try a different search or clear the filters to see this student’s full timeline.</p><button type="button" onClick={clear}>Clear timeline filters</button></div> : children(matches)}
