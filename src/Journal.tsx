@@ -10,6 +10,7 @@ import ObservationEditor from './ObservationEditor'
 import StudentTimeline from './StudentTimeline'
 import { observationsCsv, downloadCsv, exportFilename } from './csvExport'
 import './CsvExport.css'
+import ClassroomCoverage from './ClassroomCoverage'
 
 type Theme = 'system' | 'light' | 'dark'
 type Props = { userId?: string; accountEmail?: string; onExit: () => void; signingOut?: boolean }
@@ -100,6 +101,15 @@ export default function Journal({ userId, accountEmail, onExit, signingOut = fal
     setSelected(roster[0]?.id ?? '')
   }
   function chooseStudent(id: string) { if (!locked && id !== selected && canLeaveDraft()) { clearDraft(); setSelected(id) } }
+  function openCoverageStudent(id: string) {
+    if (locked || !active.some(s => s.id === id)) return
+    if (id !== selected) {
+      if (!canLeaveDraft()) return
+      clearDraft(); setSelected(id)
+    }
+    setSearch(''); setOnlyDue(false)
+    window.requestAnimationFrame(() => document.getElementById('student-journal')?.focus())
+  }
   function openEdit(value: Edit) {
     if (locked) return
     if ((value.kind === 'classroom-new' || value.kind === 'student-new') && !canLeaveDraft()) return
@@ -188,6 +198,7 @@ export default function Journal({ userId, accountEmail, onExit, signingOut = fal
         <p className="workspace-message" role="status">{message}</p>
         {classroom?.archived && <div className="archive-notice">This classroom is archived. Its timelines are kept. Restore the classroom to add students or observations.</div>}
         <section className="stats" aria-label="Classroom overview"><div><span>Active students in this classroom</span><strong>{String(active.length).padStart(2, '0')}<small>fictional aliases</small></strong></div><div><span>Observations in the last 7 days</span><strong>{String(recentCount).padStart(2, '0')}<small>for active students</small></strong></div><div><span>Ready for a check-in</span><strong>{String(dueCount).padStart(2, '0')}<small>{dueCount ? 'students to reconnect with' : 'everyone covered'}</small></strong></div></section>
+        <ClassroomCoverage key={classroom?.id ?? 'empty'} workspace={workspace} classroomId={classroom?.id ?? ''} today={today} disabled={locked} selectedId={student?.id} onSelect={openCoverageStudent} />
         <div className="journal-grid"><section className="panel roster"><div className="panel-heading"><h2>Your students <span className="count">{active.length}</span></h2><p>{classroom?.name ?? 'Choose or create a classroom.'}</p></div>
           <div className="roster-controls"><button className="add-student" disabled={locked || !classroom || classroom.archived} onClick={() => classroom && openEdit({ kind: 'student-new', classroomId: classroom.id })}>＋ Add student alias</button><label className="sr-only" htmlFor="search">Search student aliases</label><input id="search" placeholder="Search aliases…" value={search} onChange={event => setSearch(event.target.value)} /><button className={onlyDue ? 'filter active' : 'filter'} aria-pressed={onlyDue} onClick={() => setOnlyDue(!onlyDue)}>◷ Needs a check-in <span>{dueCount}</span></button></div>
           <div className="student-list">{visible.map(s => {
@@ -195,7 +206,7 @@ export default function Journal({ userId, accountEmail, onExit, signingOut = fal
             return <button key={s.id} className={`student-row ${student?.id === s.id ? 'selected' : ''}`} aria-pressed={student?.id === s.id} disabled={locked} onClick={() => chooseStudent(s.id)}><span className={`avatar ${s.color}`} aria-hidden="true">{avatarLabel(s.alias)}</span><span className="student-info"><strong>{s.alias}</strong><small>{s.archived ? 'Archived · History kept' : last ? `Last note ${daysAgo(last.date, today) === 0 ? 'today' : `${daysAgo(last.date, today)}d ago`}` : 'No observations yet'}</small></span>{s.archived || classroom?.archived ? <span className="archived-mark" aria-label="Archived">◷</span> : due(s.id) ? <span className="due-dot" title="Needs a check-in"><span className="sr-only">Needs a check-in</span></span> : <span className="row-check" aria-label="Recently observed">✓</span>}</button>
           })}{visible.length === 0 && <p className="empty">{loading ? 'Loading students…' : students.length === 0 ? 'Add your first fictional student alias to get started.' : 'No students match. Try clearing the filters or showing archived students.'}</p>}</div><div className="coverage-help">Check-in reminders appear after 7 days without a note. Archived students and classrooms are excluded.</div>
         </section>
-        <div className="student-detail">{student ? <>
+        <div className="student-detail" id="student-journal" tabIndex={-1}>{student ? <>
           <section className="panel composer"><div className="detail-heading"><span className={`avatar large ${student.color}`} aria-hidden="true">{avatarLabel(student.alias)}</span><div><h2>{student.alias}<span className="alias-tag">{readOnly ? 'Archived' : 'Fictional alias'}</span></h2><p>{readOnly ? 'Their history is kept. Restore to add observations.' : due(student.id) ? 'A good time for a fresh observation.' : 'Keep building the picture, one moment at a time.'}</p></div></div>
             <div className="student-actions"><button disabled={locked} onClick={() => openEdit({ kind: 'student-rename', student })}>Rename alias</button><button disabled={locked || Boolean(classroom?.archived)} onClick={() => { void archiveStudent() }}>{student.archived ? 'Restore student' : 'Archive student'}</button></div>
             <form onSubmit={event => { void save(event) }}><div className="form-top"><h3>What did you notice?</h3><span>A moment worth remembering</span></div><label className="sr-only" htmlFor="note">Observation for {student.alias}</label><textarea ref={noteInput} id="note" value={draft} onChange={event => setDraft(event.target.value)} maxLength={2000} disabled={busy || readOnly} required placeholder={readOnly ? 'Restore this student and classroom to add a new observation.' : 'What happened? What might help next? Keep it specific and kind.'} /><div className="form-fields"><label>Category<select value={category} disabled={busy || readOnly} onChange={event => setCategory(event.target.value as Category)}>{categories.map(c => <option key={c}>{c}</option>)}</select></label><label>Observation date<input type="date" value={date} max={today} disabled={busy || readOnly} required onChange={event => setDate(event.target.value)} /></label></div><div className="form-footer"><span>{draft.length}/2,000 characters</span><button className="primary" disabled={locked || readOnly || !draft.trim()}>{busy ? 'Saving…' : 'Save observation'} <span aria-hidden="true">↗</span></button></div></form>

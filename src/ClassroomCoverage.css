@@ -1,0 +1,13 @@
+.classroom-coverage{padding:22px 23px;margin:22px 0 0}
+.coverage-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
+.coverage-heading h2{margin:0 0 6px}.coverage-heading p{margin:0;font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.coverage-summary{font-size:12px;color:var(--green);line-height:1.6}
+.coverage-progress{display:block;width:100%;height:9px;margin:18px 0 20px;border:0;border-radius:8px;overflow:hidden;background:var(--tint);accent-color:var(--green)}
+.coverage-progress::-webkit-progress-bar{background:var(--tint);border-radius:8px}.coverage-progress::-webkit-progress-value{background:var(--green);border-radius:8px}.coverage-progress::-moz-progress-bar{background:var(--green)}
+.coverage-views{display:flex;gap:8px;flex-wrap:wrap}.coverage-views button{display:flex;align-items:center;gap:9px;font-size:12px}.coverage-views button.active{background:var(--tint);color:var(--green);border-color:var(--green)}.coverage-views button span{font-weight:700}
+.coverage-list-help,.coverage-footnote{font-size:11px;color:var(--muted);line-height:1.7}.coverage-list-help{margin:17px 0 8px}.coverage-footnote{margin:17px 0 0}
+.coverage-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.coverage-list li{min-width:0}.coverage-list button{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;width:100%;text-align:left;padding:14px;background:var(--field)}.coverage-list button>span:first-child{flex:1;min-width:100px;overflow-wrap:anywhere}.coverage-list strong{font-size:13px;display:block}.coverage-list small{display:block;font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
+.coverage-status{font-size:11px;color:var(--muted)}.coverage-none,.coverage-overdue{color:var(--ink)}.coverage-recent{color:var(--green)}.coverage-open{font-size:11px;color:var(--green);width:100%;padding-top:2px}.coverage-expand{font-size:12px;margin-top:13px}.coverage-empty{font-size:13px;color:var(--muted);margin:20px 0 0}
+@media(max-width:800px){.coverage-list{grid-template-columns:1fr}}
+@media(max-width:620px){.classroom-coverage{padding:18px}.coverage-views button{flex:1 1 44%;font-size:11px;justify-content:space-between}.coverage-heading{gap:10px}}
